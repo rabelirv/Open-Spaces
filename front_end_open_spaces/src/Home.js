@@ -27,36 +27,24 @@ class Home extends React.Component{
   componentDidMount(){
     this.socket.on('server:message', (data)=>{
       console.log("Server Message",data);
-      let distanceMatrix = this.props.google.maps.DistanceMatrixService.prototype
-      distanceMatrix.getDistanceMatrix({
-    origins: [this.props.currentLocation],
-    destinations: [data.currentLocation],
-    travelMode: 'DRIVING',
-    unitSystem:this.props.google.maps.UnitSystem.IMPERIAL
-  },(res, status)=>{
-    if (status === "OK") {
-      this.setState({...this.state.addresses,distance:res.rows[0].elements[0].distance.value})
-      if (data.fromRentee && this.state.distance <= 8046.72) {
-        this.promptUser(data)
-      }else if(data.address !== undefined && data.fromRentor){
+      if (data.currentLocation !== undefined) {
+        const within = this.withinRegion(data.currentLocation,this.props.currentLocation,8046.72)
+        if (within) {
+          this.promptUser(data)
+        }
+      }
+      if(data.address !== undefined && data.fromRentor){
         this.confirmParkingSpot(data)
       }
-    } else {
-      console.error("status:",status)
-    }
-  }
-  )
-    if (data.address !== undefined && data.fromRentor) {
-      this.confirmParkingSpot(data)
-    }
+
 
     this.props.getSocket(this.socket)
   })
-
 }
 
 
   withinRegion = (point,position, radius) => {
+    console.log(point, position, radius);
     const google = window.google
         const to = new google.maps.LatLng(position.lat, position.lng);
         const distance = google.maps.geometry.spherical.computeDistanceBetween;
